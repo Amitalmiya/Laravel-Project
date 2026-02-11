@@ -12,7 +12,8 @@
         "fideloper/proxy": "^4.0",
         "laravel/framework": "^6.0",
         "laravel/tinker": "^1.0",
-        "mhetreramesh/flysystem-backblaze": "^1.6"
+        "mhetreramesh/flysystem-backblaze": "^1.6",
+        "twilio/sdk": "^8.11"
     },
     "require-dev": {
         "filp/whoops": "^2.0",

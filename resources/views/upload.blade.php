@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>File Upload</title>
+    <title>Upload Your Files Here</title>
     <style>
         body {
             font-family: Arial, sans-serif;
