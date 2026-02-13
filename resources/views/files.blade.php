@@ -1,232 +1,270 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Uploaded Files</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        .btn {
-            padding: 5px 10px;
-            text-decoration: none;
-            border-radius: 3px;
-            margin-right: 5px;
-            display: inline-block;
-        }
-        .btn-download {
-            background-color: #2196F3;
-            color: white;
-        }
-        .btn-delete {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        .alert {
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 3px;
-        }
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .action-buttons {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        .action-buttons button {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .btn-select-all {
-            background-color: #4CAF50;
-            color: white;
-        }
-        .btn-bulk-delete {
-            background-color: #f44336;
-            color: white;
-        }
-        .btn-bulk-download {
-            background-color: #2196F3;
-            color: white;
-        }
-        .action-buttons button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uploaded Files - File Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/pages/files.css') }}">
 </head>
 <body>
-    <h1>Uploaded Files <i class="fa fa-file-text" aria-hidden="true"></i></h1>
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-error">{{ session('error') }}</div>
-    @endif
-
-    <div style="margin-bottom: 20px;">
-        <a href="{{ route('upload.form') }}"><i class="fa fa-chevron-left" aria-hidden="true"></i> Back to Upload</a>
-    </div>
-
-    @if(count($files) > 0)
-        <div class="action-buttons">
-            <button type="button" class="btn-select-all" id="selectAllBtn" onclick="toggleSelectAll()">
-                <i class="fas fa-check-square"></i> Select All
-            </button>
-            <button type="button" class="btn-bulk-delete" id="bulkDeleteBtn" onclick="deleteSelected()" disabled>
-                <i class="fas fa-trash"></i> Delete Selected
-            </button>
-            <button type="button" class="btn-bulk-download" id="bulkDownloadBtn" onclick="downloadSelected()" disabled>
-                <i class="fas fa-download"></i> Download Selected
-            </button>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <i class="fas fa-folder-open"></i>
+                File Manager
+            </h1>
+            <a href="{{ route('upload.form') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i>
+                Upload New Files
+            </a>
         </div>
 
-        <form id="bulkDeleteForm" action="{{ route('file.bulkDelete') }}" method="POST" style="display: none;">
-            @csrf
-            @method('DELETE')
-            <input type="hidden" name="files" id="bulkDeleteFiles">
-        </form>
+        <div class="content">
+            @if(session('success'))
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
 
-        <table>
-            <thead>
-                <tr>
-                    <th>
-                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
-                    </th>
-                    <th>Filename</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($files as $file)
-                    <tr>
-                        <td>
-                            <input type="checkbox" class="file-checkbox" value="{{ basename($file) }}" onchange="updateActionButtons()">
-                        </td>
-                        <td>{{ basename($file) }}</td>
-                        <td>
-                            <a href="{{ route('file.download', basename($file)) }}" class="btn btn-download" title="Download File">
-                                <i class="fas fa-download"></i>
-                            </a>
-                            <form action="{{ route('file.delete', basename($file)) }}" method="POST" style="display: inline;" class="delete-form">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-delete" onclick="return confirm('Are you sure you want to delete this file?')" title="Delete File">
-                                    <i class="fas fa-trash"></i> 
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    @else
-    <div style="text-align: center; padding: 40px;">
-        <p>No files uploaded yet.</p>
-        <a href="{{ route('upload.form') }}" class="btn btn-primary">Upload Files</a>
-    </div>   
-    @endif
-    <div style="text-align: center; padding: 20px;">
-    <a href="{{ route('upload.form') }}" class="btn btn-primary">Upload Files</a>
+            @if(session('error'))
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
+            @if(count($files) > 0)
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <i class="fas fa-file"></i>
+                        <div>
+                            <div class="stat-value">{{ count($files) }}</div>
+                            <div class="stat-label">Total Files</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-check-square"></i>
+                        <div>
+                            <div class="stat-value" id="selectedCount">0</div>
+                            <div class="stat-label">Selected</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-bar">
+                    <button type="button" class="btn btn-select-all" id="selectAllBtn" onclick="toggleSelectAll()">
+                        <i class="fas fa-check-square"></i> 
+                        Select All
+                    </button>
+                    <button type="button" class="btn btn-bulk-download" id="bulkDownloadBtn" onclick="downloadSelected()" disabled>
+                        <i class="fas fa-download"></i> 
+                        Download Selected
+                    </button>
+                    <button type="button" class="btn btn-bulk-delete" id="bulkDeleteBtn" onclick="deleteSelected()" disabled>
+                        <i class="fas fa-trash"></i> 
+                        Delete Selected
+                    </button>
+                </div>
+
+                <form id="bulkDeleteForm" action="{{ route('file.bulkDelete') }}" method="POST" style="display: none;">
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="files" id="bulkDeleteFiles">
+                </form>
+
+                <div class="file-table-wrapper">
+                    <table class="file-table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <input 
+                                        type="checkbox" 
+                                        id="selectAllCheckbox" 
+                                        class="file-checkbox"
+                                        onchange="toggleSelectAll()"
+                                    >
+                                </th>
+                                <th>File Name</th>
+                                <th>Type</th>
+                                <th style="text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($files as $file)
+                                @php
+                                    $filename = basename($file);
+                                    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                                    $iconClass = $extension === 'pdf' ? 'pdf' : ($extension === 'txt' ? 'txt' : 'default');
+                                    
+                                    // Get file size safely
+                                    $filePath = public_path('storage/uploads/' . $filename);
+                                    $fileSize = 0;
+                                    if (file_exists($filePath)) {
+                                        $fileSize = filesize($filePath);
+                                    }
+                                    $sizeInKB = round($fileSize / 1024, 2);
+                                    $sizeInMB = round($fileSize / (1024 * 1024), 2);
+                                @endphp
+                                <tr id="row-{{ $loop->index }}">
+                                    <td>
+                                        <input 
+                                            type="checkbox" 
+                                            class="file-checkbox" 
+                                            value="{{ $filename }}" 
+                                            onchange="updateSelection({{ $loop->index }})"
+                                            id="checkbox-{{ $loop->index }}"
+                                        >
+                                    </td>
+                                    <td>
+                                        <div class="file-info">
+                                            <div class="file-icon-small {{ $iconClass }}">
+                                                @if($extension === 'pdf')
+                                                    <i class="fas fa-file-pdf"></i>
+                                                @elseif($extension === 'txt')
+                                                    <i class="fas fa-file-alt"></i>
+                                                @else
+                                                    <i class="fas fa-file"></i>
+                                                @endif
+                                            </div>
+                                            <div class="file-details">
+                                                <div class="file-name-text" title="{{ $filename }}">
+                                                    {{ $filename }}
+                                                </div>
+                                                <div class="file-meta">
+                                                    <i class="fas fa-hdd"></i>
+                                                    @if($sizeInMB >= 1)
+                                                        {{ $sizeInMB }} MB
+                                                    @elseif($sizeInKB > 0)
+                                                        {{ $sizeInKB }} KB
+                                                    @else
+                                                        0 KB
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="file-type-badge {{ $iconClass }}">
+                                            {{ strtoupper($extension) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{{ route('file.download', $filename) }}" 
+                                               class="btn-icon btn-download-icon" 
+                                               title="Download">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            <form action="{{ route('file.delete', $filename) }}" 
+                                                  method="POST" 
+                                                  style="display: inline;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button 
+                                                    type="submit" 
+                                                    class="btn-icon btn-delete-icon" 
+                                                    onclick="return confirm('Are you sure you want to delete {{ $filename }}?')"
+                                                    title="Delete"
+                                                >
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h2>No Files Yet</h2>
+                    <p>You haven't uploaded any files yet. Start by uploading your first file!</p>
+                    <a href="{{ route('upload.form') }}" class="btn btn-primary">
+                        <i class="fas fa-upload"></i>
+                        Upload Your First File
+                    </a>
+                </div>
+            @endif
+        </div>
     </div>
 
     <script>
+        let selectAllBtn = document.getElementById('selectAllBtn');
+        let selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        let bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+        let bulkDownloadBtn = document.getElementById('bulkDownloadBtn');
+        let selectedCountEl = document.getElementById('selectedCount');
+
         function toggleSelectAll() {
-            const selectAllCheckbox = document.getElementById('selectAll');
-            const checkboxes = document.querySelectorAll('.file-checkbox');
-            const selectAllBtn = document.getElementById('selectAllBtn');
+            const checkboxes = document.querySelectorAll('.file-checkbox:not(#selectAllCheckbox)');
+            const allChecked = selectAllCheckbox.checked;
             
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = selectAllCheckbox.checked;
+            checkboxes.forEach((checkbox, index) => {
+                checkbox.checked = allChecked;
+                updateRowSelection(index);
             });
             
-            if (selectAllCheckbox.checked) {
+            updateUI();
+        }
+
+        function updateSelection(index) {
+            updateRowSelection(index);
+            updateUI();
+        }
+
+        function updateRowSelection(index) {
+            const checkbox = document.getElementById(`checkbox-${index}`);
+            const row = document.getElementById(`row-${index}`);
+            
+            if (checkbox && row) {
+                if (checkbox.checked) {
+                    row.classList.add('selected');
+                } else {
+                    row.classList.remove('selected');
+                }
+            }
+        }
+
+        function updateUI() {
+            const checkboxes = document.querySelectorAll('.file-checkbox:not(#selectAllCheckbox):checked');
+            const totalCheckboxes = document.querySelectorAll('.file-checkbox:not(#selectAllCheckbox)');
+            const selectedCount = checkboxes.length;
+            const totalCount = totalCheckboxes.length;
+            
+            if (selectedCountEl) {
+                selectedCountEl.textContent = selectedCount;
+            }
+            
+            if (selectedCount === totalCount && totalCount > 0) {
+                selectAllCheckbox.checked = true;
                 selectAllBtn.innerHTML = '<i class="fas fa-square"></i> Deselect All';
             } else {
+                selectAllCheckbox.checked = false;
                 selectAllBtn.innerHTML = '<i class="fas fa-check-square"></i> Select All';
             }
             
-            updateActionButtons();
-        }
-
-        function updateActionButtons() {
-            const checkboxes = document.querySelectorAll('.file-checkbox:checked');
-            const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-            const bulkDownloadBtn = document.getElementById('bulkDownloadBtn');
-            const selectAllCheckbox = document.getElementById('selectAll');
-            const allCheckboxes = document.querySelectorAll('.file-checkbox');
-            
-            if (checkboxes.length > 0) {
+            if (selectedCount > 0) {
                 bulkDeleteBtn.disabled = false;
                 bulkDownloadBtn.disabled = false;
             } else {
                 bulkDeleteBtn.disabled = true;
                 bulkDownloadBtn.disabled = true;
             }
-
-            if (checkboxes.length === allCheckboxes.length) {
-                selectAllCheckbox.checked = true;
-                selectAllCheckbox.indeterminate = false;
-            } else if (checkboxes.length > 0) {
-                selectAllCheckbox.indeterminate = true;
-            } else {
-                selectAllCheckbox.checked = false;
-                selectAllCheckbox.indeterminate = false;
-            }
         }
 
         function deleteSelected() {
-            const checkboxes = document.querySelectorAll('.file-checkbox:checked');
+            const checkboxes = document.querySelectorAll('.file-checkbox:not(#selectAllCheckbox):checked');
             
             if (checkboxes.length === 0) {
                 alert('Please select at least one file to delete.');
                 return;
             }
             
-            if (!confirm(`Are you sure you want to delete ${checkboxes.length} file(s)?`)) {
+            if (!confirm(`Are you sure you want to delete ${checkboxes.length} file(s)? This action cannot be undone.`)) {
                 return;
             }
             
@@ -236,21 +274,27 @@
         }
 
         function downloadSelected() {
-            const checkboxes = document.querySelectorAll('.file-checkbox:checked');
+            const checkboxes = document.querySelectorAll('.file-checkbox:not(#selectAllCheckbox):checked');
             
             if (checkboxes.length === 0) {
                 alert('Please select at least one file to download.');
                 return;
             }
             
-            checkboxes.forEach(checkbox => {
-                const filename = checkbox.value;
-                const link = document.createElement('a');
-                link.href = '{{ url("file/download") }}/' + filename;
-                link.download = filename;
-                link.click();
+            checkboxes.forEach((checkbox, index) => {
+                setTimeout(() => {
+                    const filename = checkbox.value;
+                    const link = document.createElement('a');
+                    link.href = '{{ url("file/download") }}/' + encodeURIComponent(filename);
+                    link.download = filename;
+                    link.click();
+                }, index * 200);
             });
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUI();
+        });
     </script>
 </body>
 </html>

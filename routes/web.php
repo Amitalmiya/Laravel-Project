@@ -24,5 +24,3 @@ Route::get('/files', 'FileUploadController@list')->name('files.list');
 Route::get('/download/{filename}', 'FileUploadController@download')->name('file.download');
 Route::delete('/delete/{filename}', 'FileUploadController@delete')->name('file.delete');
 Route::delete('/bulk-delete', 'FileUploadController@bulkDelete')->name('file.bulkDelete');
-
-Route::get('/send', 'SmsController@send');
